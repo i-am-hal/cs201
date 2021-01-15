@@ -18,7 +18,7 @@ int main () {
 
     cout << "In the game, you go further and further into the future, seeing how your small home town" << endl;
     cout << "changes and falls apart throughout the decades. The game is, in all honesty, very disturbing." << endl;
-    cout << "And, of course, the game is quite political in nature, but nonetheless I belive that this" << endl;
+    cout << "And, of course, the game is quite political in nature, but nonetheless I believe that this" << endl;
     cout << "game has been the most relevant than it ever has been, in its ~30 years of life. I have" << endl;
     cout << "scenes in this game burned into my mind, and believe that I will remember it for a long time." << endl;
     cout << "I hope to play this game again soon." << endl;
