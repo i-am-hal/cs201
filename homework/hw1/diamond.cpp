@@ -25,18 +25,15 @@ int main () {
 
     //Calculate the size of the rows, and columns (in characters)
     int charSize = 2 * diamondWidth - 1;
-
-    int line = 0;
-    int column = 1;
     int numSpaces; //The number of spaces needed on either side of hashes
     int hashMaxima = charSize / 2; //Number at which we've hit maximum number of hashes
 
     //Print out each line of the diamond..
-    while (line <= charSize) {
+    for (int line = 0; line <= charSize; line++) {
         numSpaces = abs(hashMaxima - line); 
 
         //Print each column, changing based on how wide it should be
-        while (column <= charSize) {
+        for (int column = 1; column <= charSize; column++) {
             //If column is between the pair of 'space' buffers, print hashes
             if (column > numSpaces && column <= charSize-numSpaces) {
                 cout << "#";
@@ -45,10 +42,7 @@ int main () {
             } else {
                 cout << " ";
             }
-            column++;
         }
-        line++;
-        column = 1;
         cout << endl;
     }
 
