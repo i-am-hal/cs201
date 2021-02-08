@@ -21,7 +21,7 @@ int main () {
 
         //If the user entered a negative number, request another positive integer
         if (input < 0) {
-            cout << endl << input << " is negative, please give only positve integers." << endl;
+            cout << endl << input << " is negative, please only give positve integers." << endl;
             return 1;
 
         //If entered number is greater than greatest saved number, save it
