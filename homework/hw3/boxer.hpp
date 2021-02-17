@@ -7,14 +7,25 @@
  * and then prints this box based on the specifications). 
 */
 
-#include <iostream>
-#include <string>
+#pragma once
+//#include <iostream>
+//#include <string>
 using std::getline;
 using std::string;
 using std::stoi;
 using std::cout;
 using std::endl;
 using std::cin;
+
+//If given string reference is not made of only digits,
+//then return false (not positive integer)
+bool isPositiveInt(string &str) {
+    for (char chr: str) 
+        if (!(chr >= '0' && chr <= '9'))
+            return false;
+    
+    return true;
+}
 
 //For use of boxer program, gets a positive integer > 0, will only
 //succeed once the user have given an integer that we can use 
@@ -25,7 +36,13 @@ int getPositiveInt() {
     do {
         cout << "Please enter an integer greater than zero: ";
         getline(cin, userInput);
-        numInput = stoi(userInput);
+
+        //Check if user gave a positive integer, if not, give error
+        if (!isPositiveInt(userInput)) {
+            cout << endl << "Malformed input, an integer greater than 0 is needed." << endl;
+
+        } else //Otherwise, convert string into integer
+            numInput = stoi(userInput);
     } while (numInput <= 0);
 
     return numInput;
