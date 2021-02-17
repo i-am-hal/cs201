@@ -65,3 +65,20 @@ void printStars(int numOfStars) {
         numOfStars--;
     }
 }
+
+
+/* Given the size of the box (thickness of the walls), and
+   the text to be placed therein, it prints the box based
+   on those parameters.
+
+   Example:   printBoxedText(2, "help")
+
+                    **********
+                    **********
+                    ** help **
+                    **********
+                    **********
+*/
+void printBoxedText(int boxSize, string boxedText) {
+
+}

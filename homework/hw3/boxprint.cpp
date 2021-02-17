@@ -12,5 +12,8 @@ int main() {
     string boxLine = getBoxString();
     cout << "You entered: \"" << boxLine << "\"" << endl;
 
+    cout << endl << "PRINTING " << givenInput << "STARS IN A LINE.. " << endl;
+    printStars(givenInput);
+
     return 0;
 }
