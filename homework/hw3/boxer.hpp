@@ -57,4 +57,11 @@ string getBoxString() {
     return userInput;
 }
 
-
+//Prints a given number of asterisks (stars), this will
+// allow us to reduce the amount of boilerplate code 
+void printStars(int numOfStars) {
+    while (numOfStars > 0) {
+        cout << "*";
+        numOfStars--;
+    }
+}
