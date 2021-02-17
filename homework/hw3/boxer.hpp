@@ -66,6 +66,31 @@ void printStars(int numOfStars) {
     }
 }
 
+/* Prints out the given text between `boxSize` number of stars
+   with two spaces between them (so that we can easily see text)
+
+   Example: printTextInBox(2, "help")
+                   ** help **
+*/
+void printTextInBox(int boxSize, string boxedText) {
+    printStars(boxSize);
+    cout << " " << boxedText << " ";
+    printStars(boxSize);
+}
+
+/* Given the number of stars per line, and the number of lines
+   that need to be printed, prints N number of lines w/ X stars in them
+   
+   Example: printStarLines(2, 10)
+                **********
+                **********
+*/
+void printStarLines(int numOfStars, int numOfLines) {
+    while (numOfLines > 0) {
+        printStars(numOfStars);
+        numOfLines--;
+    }
+}
 
 /* Given the size of the box (thickness of the walls), and
    the text to be placed therein, it prints the box based
@@ -80,5 +105,9 @@ void printStars(int numOfStars) {
                     **********
 */
 void printBoxedText(int boxSize, string boxedText) {
+    //Calculates the length of the stars on either side of text
+    int boxCapSize = 2 * boxSize + 2 + boxedText.size();
 
+    //Print the middle line w/ the text in it.
+    printTextInBox(boxSize, boxedText);
 }
