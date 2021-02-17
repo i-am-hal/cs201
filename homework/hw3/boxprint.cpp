@@ -15,5 +15,8 @@ int main() {
     cout << endl << "PRINTING " << givenInput << "STARS IN A LINE.. " << endl;
     printStars(givenInput);
 
+    cout << endl << "PRINTING BOX W/ SPECIFICATIONS.. " << endl;
+    printBoxedText(givenInput, boxLine);
+
     return 0;
 }

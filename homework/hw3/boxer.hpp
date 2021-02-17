@@ -76,6 +76,7 @@ void printTextInBox(int boxSize, string boxedText) {
     printStars(boxSize);
     cout << " " << boxedText << " ";
     printStars(boxSize);
+    cout << endl; //End off this line
 }
 
 /* Given the number of stars per line, and the number of lines
@@ -88,6 +89,7 @@ void printTextInBox(int boxSize, string boxedText) {
 void printStarLines(int numOfStars, int numOfLines) {
     while (numOfLines > 0) {
         printStars(numOfStars);
+        cout << endl; // Stop this line of stars
         numOfLines--;
     }
 }
@@ -108,6 +110,7 @@ void printBoxedText(int boxSize, string boxedText) {
     //Calculates the length of the stars on either side of text
     int boxCapSize = 2 * boxSize + 2 + boxedText.size();
 
-    //Print the middle line w/ the text in it.
-    printTextInBox(boxSize, boxedText);
+    printStarLines(boxCapSize, boxSize); //Print top star cap above text
+    printTextInBox(boxSize, boxedText); //Print the middle line w/ the text in it.
+    printStarLines(boxCapSize, boxSize); //Print bottom star cap below text
 }
