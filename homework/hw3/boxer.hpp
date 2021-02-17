@@ -8,8 +8,8 @@
 */
 
 #pragma once
-//#include <iostream>
-//#include <string>
+#include <iostream>
+#include <string>
 using std::getline;
 using std::string;
 using std::stoi;
@@ -47,3 +47,14 @@ int getPositiveInt() {
 
     return numInput;
 }
+
+//Prompts the user to input a line of text which they'd like to be
+//in the box that we shall print to their specifications later.
+string getBoxString() {
+    string userInput;
+    cout << "Enter the text desired to be within the box: ";
+    getline(cin, userInput);
+    return userInput;
+}
+
+
