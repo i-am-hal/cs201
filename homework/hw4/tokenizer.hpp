@@ -128,3 +128,8 @@ void AnalyzeTokens(const vector<string> &tokens) {
     }
 }
 
+//This will be the repl (read-eval-print-loop) for our lexer.
+//Will continously get input from user until they enter END
+void repl() {
+
+}
