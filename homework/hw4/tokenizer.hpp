@@ -53,9 +53,35 @@ unsigned StringToTokenWS(const string &input, vector<string> &tokens) {
     return tokenNumber;
 }
 
+//Given a string, well tell the AnalyzeTokens function 
+// if the string is a kind of recognized operator.
+bool isOperator(const string &token) {
+    if (token == "+" || token == "-" || token == "*" || token == "/" || token == "=")
+        return true;
+    else
+        return false;
+}
+
+//Given a token, will test if the token is made up of 
+// only digits and therefore, and integer constant
+bool isInteger(const string &token) {
+    for (char chr: token) {
+        if (chr < '0' && chr > '9')
+            return false;
+    }
+    return true;
+}
+
 //Given the stream of tokens, it will analyze each one and print
 //what `kind` of lexeme it is for the user to see.
 void AnalyzeTokens(const vector<string> &tokens) {
+    for (const string &token: tokens) {
 
+        //Detect if the token is an operator
+        if (isOperator(token))
+            cout << "[Operator]";
+        
+        cout << "\t\t\t" << "\"" << token << "\"" << endl;
+    }
 }
 
