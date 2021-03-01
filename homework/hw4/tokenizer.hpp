@@ -34,19 +34,23 @@ bool ReadLine(string &str) {
     return notJustSpaces;
 }
 
-//Given input from the user, chop up the input into lexemes, and return
-// the number of tokens found in the given user input.
+//Given input from the user, chop up the input into lexemes, 
+//and return the number of tokens found in the given user input.
 unsigned StringToTokenWS(const string &input, vector<string> &tokens) {
     istringstream inputStream(input); //Input stream to read from
     string token;                     //Currently read token from stream
+    unsigned tokenNumber = 0;         //Number of tokens processed
 
     //While able to w/o error, continously add each token from stream
-    while (inputStream >> token) 
+    while (inputStream >> token) {
         tokens.push_back(token);
+        tokenNumber++;
+    }
     
     //Denote the end of this line.
     tokens.push_back("");
 
-    return 0;
+    return tokenNumber;
 }
 
+//
