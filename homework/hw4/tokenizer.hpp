@@ -105,17 +105,24 @@ bool isString(const string &token) {
 //what `kind` of lexeme it is for the user to see.
 void AnalyzeTokens(const vector<string> &tokens) {
     for (const string &token: tokens) {
-        //Detect if the token is an operator
+        //Detect what kind of thing the token is, identify it
         if (isOperator(token))
             cout << "[Operator]";
         
-        //Detect if the token is an integer instead..
         else if (isInteger(token))
             cout << "[Integer]";
         
-        //Detect if the token is an identifier
         else if (isIdentifier(token))
             cout << "[Identifier]";
+        
+        else if (isString(token))
+            cout << "[String]";
+        
+        else if (token == "")
+            cout << "[Whitespace]";
+        
+        else //Unable to tell what this token is
+            cout << "[Other]";
         
         cout << "\t\t\t" << "\"" << token << "\"" << endl;
     }
