@@ -2,7 +2,9 @@
  * March 1, 2021
  * tokenizer.hpp */
 #include <iostream>
+#include <vector>
 #include <string>
+using std::vector;
 using std::string;
 using std::getline;
 using std::endl;
@@ -30,5 +32,8 @@ bool ReadLine(string &str) {
     return notJustSpaces;
 }
 
-
+//
+unsigned StringToTokenWS(const string &input, vector<string> &tokens) {
+    return 0;
+}
 
