@@ -80,17 +80,25 @@ bool isAlpha(const char &chr) {
 //Given a string, will return true/faslse depending
 // on this conforms to being an identifier.
 bool isIdentifier(const string &token) {
-    char first = token.at(0);  //First character in token
-
     //If first character isn't a letter, or underscore, then not valid identifier
-    if (first < 'A' || first > 'Z' && first < 'a' || first > 'z' && first != '_')
+    if (!isAlpha(token.at(0)))
         return false;
     
+    //If character neither a letter, underscore, or digit, return false
     for(char chr: token) {
-        if (first < 'A' || first > 'Z' && first < 'a' || first > 'z' && first != '_')
+        if (!(isAlpha(chr) || chr >= '0' && chr <= '9'))
             return false;
     }
     return true;
+}
+
+//Given a string, tests if the token is a string literal.
+bool isString(const string &token) {
+    //If token starts and ends with a double quote, it is a string
+    if (token.at(0) == '"' && token.at(token.size()-1) == '"')
+        return true;
+    else
+        return false;
 }
 
 //Given the stream of tokens, it will analyze each one and print
@@ -104,6 +112,10 @@ void AnalyzeTokens(const vector<string> &tokens) {
         //Detect if the token is an integer instead..
         else if (isInteger(token))
             cout << "[Integer]";
+        
+        //Detect if the token is an identifier
+        else if (isIdentifier(token))
+            cout << "[Identifier]";
         
         cout << "\t\t\t" << "\"" << token << "\"" << endl;
     }
