@@ -72,14 +72,38 @@ bool isInteger(const string &token) {
     return true;
 }
 
+//Given a character, return true if it is either A-Z (a-z) or an underscore
+bool isAlpha(const char &chr) {
+    return (chr >= 'A' && chr <= 'Z' || chr >= 'a' && chr <= 'z' || chr == '_');
+}
+
+//Given a string, will return true/faslse depending
+// on this conforms to being an identifier.
+bool isIdentifier(const string &token) {
+    char first = token.at(0);  //First character in token
+
+    //If first character isn't a letter, or underscore, then not valid identifier
+    if (first < 'A' || first > 'Z' && first < 'a' || first > 'z' && first != '_')
+        return false;
+    
+    for(char chr: token) {
+        if (first < 'A' || first > 'Z' && first < 'a' || first > 'z' && first != '_')
+            return false;
+    }
+    return true;
+}
+
 //Given the stream of tokens, it will analyze each one and print
 //what `kind` of lexeme it is for the user to see.
 void AnalyzeTokens(const vector<string> &tokens) {
     for (const string &token: tokens) {
-
         //Detect if the token is an operator
         if (isOperator(token))
             cout << "[Operator]";
+        
+        //Detect if the token is an integer instead..
+        else if (isInteger(token))
+            cout << "[Integer]";
         
         cout << "\t\t\t" << "\"" << token << "\"" << endl;
     }
