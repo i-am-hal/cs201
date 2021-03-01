@@ -53,4 +53,9 @@ unsigned StringToTokenWS(const string &input, vector<string> &tokens) {
     return tokenNumber;
 }
 
-//
+//Given the stream of tokens, it will analyze each one and print
+//what `kind` of lexeme it is for the user to see.
+void AnalyzeTokens(const vector<string> &tokens) {
+
+}
+
