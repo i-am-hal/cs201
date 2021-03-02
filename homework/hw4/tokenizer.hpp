@@ -65,8 +65,9 @@ bool isOperator(const string &token) {
 //Given a token, will test if the token is made up of 
 // only digits and therefore, and integer constant
 bool isInteger(const string &token) {
+    //Not a bunch of characters, return false
     for (char chr: token) {
-        if (chr < '0' && chr > '9')
+        if (!(chr >= '0' && chr <= '9'))
             return false;
     }
     return true;
@@ -106,7 +107,10 @@ bool isString(const string &token) {
 void AnalyzeTokens(const vector<string> &tokens) {
     for (const string &token: tokens) {
         //Detect what kind of thing the token is, identify it
-        if (isOperator(token))
+        if (token == "")
+            cout << "[Whitespace]";
+        
+        else if (isOperator(token))
             cout << "[Operator]";
         
         else if (isInteger(token))
@@ -118,9 +122,6 @@ void AnalyzeTokens(const vector<string> &tokens) {
         else if (isString(token))
             cout << "[String]";
         
-        else if (token == "")
-            cout << "[Whitespace]";
-        
         else //Unable to tell what this token is
             cout << "[Other]";
         
@@ -128,8 +129,32 @@ void AnalyzeTokens(const vector<string> &tokens) {
     }
 }
 
+//Given the current set of tokens, check if the keyword
+// END is anywhere within (to see if we should end REPL)
+bool endRepl(const vector<string> &tokens) {
+    for (const string token: tokens) {
+        if (token == "END" || token == "end" || token == "End")
+            return true;
+    }
+    return false;
+}
+
 //This will be the repl (read-eval-print-loop) for our lexer.
 //Will continously get input from user until they enter END
 void repl() {
+    vector<string> tokens;
+    string input;
 
+    //Prompt for the user to ensure that they know what is going on
+    cout << "Please type in some text. When you are done, type \"End\", \"end\" or \"END\":" << endl;
+
+    do {
+        ReadLine(input); //Read a line of input from the user
+        //Truncate input into a series of tokens..
+        StringToTokenWS(input, tokens);
+    //If the keyword 'END' occurs, end input loop 
+    } while (!endRepl(tokens));
+
+    //Print out all analyzed tokens from the lexer
+    AnalyzeTokens(tokens);
 }
