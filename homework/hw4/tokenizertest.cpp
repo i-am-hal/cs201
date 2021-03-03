@@ -36,9 +36,14 @@ const vector<string> isOperatorInputs = {"+", "-", "A", "*", "42", "/", "Hello!"
 //All of the expected outputs for the ^above inputs to isOperator
 const vector<bool> isOperatorOutputs = {true, true, false, true, false, true, false, true};
 
+//All of the inputs for the isInteger function
+const vector<string> isIntegerInputs = {"1234", "1977", "Apple", "42", "1984", "Infocom"};
+
+//All of the expected outputs for the ^inputs given to isInteger
+const vector<bool> isIntegerOutputs = {true, true, false, true, true, false};
+
 int main() {
     cout << "TESTING LEXER (StringToTokensWS).." << endl;
-
     for (int i = 0; i < stringToTokensTests.size(); i++) {
         string testString = stringToTokensTests.at(i);         //Get the string to test
         vector<string> expectedResults = corrTokenTests.at(i); //Get corr expected results
@@ -62,7 +67,6 @@ int main() {
     cout << "All tests passed!" << endl;
 
     cout << endl << "TESTING isOperator FUNCTION.." << endl;
-
     //Test isOperator function, if any errors occur, raise an error
     for (int i = 0; i < isOperatorInputs.size(); i++) {
         string testInput = isOperatorInputs.at(i);
@@ -72,6 +76,18 @@ int main() {
             cout << "Error: didn't get " << testOutput;
             cout << " when isOperator recieves: " << testInput << endl;
             return 2;
+        }
+    }
+    cout << "All tests passed!" << endl << endl;
+
+    cout << "TESTING isInteger FUNCTION.." << endl;
+    for (int i = 0; i < isIntegerInputs.size(); i++) {
+        bool givenResult = isInteger(isIntegerInputs.at(i));
+        bool expectedResult = isIntegerOutputs.at(i);
+
+        if (givenResult != expectedResult) {
+            cout << "Error: recieved " << givenResult << " when expected " << expectedResult << endl;
+            return 3;
         }
     }
     cout << "All tests passed!" << endl << endl;
