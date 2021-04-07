@@ -1,0 +1,34 @@
+
+utterance :=   <sentence> la <sentence> <punctuation>
+	     | <sentence> <punctuation>
+
+sentence  :=   <nounPhrase>
+	     | <nounPhrase> <verbPhrase> <dirNounPhrase>? <indirNounPhrase>?
+	     | (mi | sina)  <mainVerb>   <dirNounPhrase>? <indirNounPhrase>?
+
+indirNounPhrase := <prepPhrase> <nounPhrase>
+
+dirNounPhrase := e <nounPhrase>
+
+nounPhrase :=   <baseNP> pi <baseNP>
+	      | <baseNP> en <baseNP>
+	      | <baseNP> anu <baseNP>
+	      | <baseNP>
+
+baseNP := <noun> <adjectives>
+
+verbPhrase := (li | o)? <mainVerb>
+
+mainVerb := <verb> <adverbs>
+
+adjectives := <adverbs> <pronoun>
+
+prepPhrase := <preposition> <adverbs>
+
+preposition := lon | tan | tawa | sama | kepeken
+
+adverbs := (<verb> | <noun>)*
+
+pronoun := mi | sina | ona | ni
+
+
