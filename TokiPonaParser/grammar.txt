@@ -10,9 +10,9 @@ indirNounPhrase := <prepPhrase> <nounPhrase>
 
 dirNounPhrase := e <nounPhrase>
 
-nounPhrase :=   <baseNP> pi <baseNP>
-	      | <baseNP> en <baseNP>
-	      | <baseNP> anu <baseNP>
+nounPhrase :=   <baseNP> pi <nounPhrase>
+	      | <baseNP> en <nounPhrase>
+	      | <baseNP> anu <nounPhrase>
 	      | <baseNP>
 
 baseNP := <noun> <adjectives>
