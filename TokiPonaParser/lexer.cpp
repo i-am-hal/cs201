@@ -7,9 +7,15 @@
  * defintiions for a Token (word), and also
  * have a routine to identify parts to speech. */
 #include <algorithm>
+#include <iostream>
+#include <ostream>
+#include <vector>
 #include <string>
 using std::transform;
+using std::ostream;
 using std::string;
+using std::vector;
+using std::cout;
 
 //Token types, end of line, verb, preposition, modifer, 
 // (pro)noun, and name. Contains key seperator words in
@@ -20,7 +26,7 @@ using std::string;
 // e  - marks start of direct object.
 // o  - command, addressing.
 enum TokenType {
-    Eol, 
+    Eol=0, 
     Unknown,
     Period,
     Comma,
@@ -59,9 +65,7 @@ class Lexer {
         string text;
         int    pos;
         char   currChar;
-        bool   error;
-        string errorStr;
-    
+
         //Moves character head forward one, updates currChar.
         void advance() {
             pos++;
@@ -69,6 +73,9 @@ class Lexer {
             //If the pos is still within text size, get character
             if (pos < text.size()) {
                 currChar = text.at(pos);
+
+            } else { //Mark end of input
+                currChar = '\0';
             }
         }
 
@@ -91,7 +98,7 @@ class Lexer {
 
             //Get all of the characters while the current character
             // is neither whitespace, nor punctuation marks
-            while (!isspace(currChar) && !isPunctuation(currChar)) {
+            while (!isspace(currChar) && !isPunctuation(currChar) && currChar != '\0') {
                 value.push_back(currChar);
                 advance();
             }
@@ -130,9 +137,12 @@ class Lexer {
         }
     
     public:
+        bool   error;
+        string errorStr;
+
         //Creates the lexer, only needs the text which should be fed through
-        Lexer(string text) {
-            text = text; //Store away the text, to be used to lexer.
+        Lexer(string inputText) {
+            text = inputText; //Store away the text, to be used to lexer.
             pos = 0;
             error = false;
 
@@ -180,7 +190,45 @@ class Lexer {
             }
 
             //Outside of bounds, or error, return Eol
-            return newToken(Eol, "");
+            return newToken(Eol, "Eol");
         }
 };
 
+
+/* ~{ OBJECT / TYPE PRINTING SUPPORT }~ */
+
+//Print out tokentype in a more pleasant way
+ostream &operator<<(ostream &out, TokenType tokenType) {
+    vector<string> outputForm = {
+        "Eol", "Unknown", "Period",
+        "Comma", "Question", "Exclaim", 
+        "Verb", "Prep", "Mod", "Noun",
+        "Pronoun", "Name", "La", "Li", 
+        "Pi", "E", "O"
+    };
+
+    return out << outputForm.at(tokenType);
+}
+
+//Overwhite printing operator so that we can print out token
+ostream &operator<<(ostream &out, Token token) {
+    return out << "Token {" << token.tokenType << ", '" << token.value << "'}";
+}
+
+
+/* ~{ WORD CATEGORIZER }~ */
+
+
+
+int main() {
+    Lexer lexer = Lexer("um[pa. uka mupa!?");
+
+    Token tok = lexer.nextToken();
+
+    while (tok.tokenType != Eol) {
+        cout << tok << std::endl;
+        tok = lexer.nextToken();
+    }
+
+    return 0;
+}
