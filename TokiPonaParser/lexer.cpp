@@ -6,16 +6,17 @@
  * in the Toki Pona parser. Will have the
  * defintiions for a Token (word), and also
  * have a routine to identify parts to speech. */
-#include <algorithm>
 #include <iostream>
 #include <ostream>
+#include <utility>
 #include <vector>
 #include <string>
-using std::transform;
+using std::make_pair;
 using std::ostream;
 using std::string;
 using std::vector;
 using std::cout;
+using std::pair;
 
 //Token types, end of line, verb, preposition, modifer, 
 // (pro)noun, and name. Contains key seperator words in
@@ -36,7 +37,9 @@ enum TokenType {
     Mod, Noun,
     Pronoun, Name,
     La, Li, Pi,
-    E, O
+    E, O, Anu, 
+    Seme, En, 
+    Preverb, Mu
 };
 
 //Defines a token, has a token type and a value.
@@ -204,7 +207,8 @@ ostream &operator<<(ostream &out, TokenType tokenType) {
         "Comma", "Question", "Exclaim", 
         "Verb", "Prep", "Mod", "Noun",
         "Pronoun", "Name", "La", "Li", 
-        "Pi", "E", "O"
+        "Pi", "E", "O", "Anu", "Seme", "En", 
+        "Preverb", "Mu"
     };
 
     return out << outputForm.at(tokenType);
@@ -216,9 +220,74 @@ ostream &operator<<(ostream &out, Token token) {
 }
 
 
-/* ~{ WORD CATEGORIZER }~ */
+/* ~{ TOKI PONA COMPLETE VOCABULARY }~ */
+
+//Defines a macro, ENTRY, used to enter in vocabulary. Makes it simpler.
+#define WORD(word, ...)  make_pair(word, ((vector<TokenType>) __VA_ARGS__))
+#define N(word)          WORD(word,{Noun})                  //Defines a Noun, only a noun
+#define M(word)          WORD(word,{Mod})                   //Defines only a Modifier
+#define V(word)          WORD(word,{Verb})                  //Defines only a Verb
+#define Pv(word)         WORD(word,{Preverb})               //Defines only a Preverb
+#define VM(word)         WORD(word,{Verb,Mod})              //Defines word that is verb, and modifier
+#define NV(word)         WORD(word,{Noun,Verb})             //Defines a word that is a noun and a verb
+#define NM(word)         WORD(word,{Noun,Mod})              //Defines that is a noun, and modifier
+#define NMV(word)        WORD(word,{Noun,Mod,Verb})         //Defines word that is a noun, modifier, and verb
+#define PNMV(word)       WORD(word,{Prep,Noun,Mod,Verb})    //Defines word that is a prep, noun, modifier, and verb
+#define NMPV(word)       WORD(word,{Preverb,Verb,Mod,Noun}) //Defines word that is a noun, mod, preverb, and verb
+#define PNM(word)        WORD(word,{Prep,Mod,Noun})         //Defines a preposition, mod, noun
+
+//A vector of pairs, where each pair is a vocabulary word, and the
+// second element says what parts of speech it can act as
+const auto VOCAB = {
+    M("a"), N("akesi"), M("ala"), V("alasa"), NM("ali"), NMV("anpa"), NMV("ante"),
+    WORD("anu", {Anu}), NMPV("awen"), WORD("en", {En}), NMV("esun"), NM("ijo"),
+    NMV("ike"), NM("ilo"), NM("insa"), NMV("jaki"), NM("jan"), NMV("jelo"),
+    WORD("jo",{Verb}), //Unconventual for it to be used as a noun
+    N("kala"), NMV("kalama"), WORD("kama",{Preverb,Verb,Noun}), N("kasi"),
+    WORD("ken",{Preverb,Noun,Mod}), WORD("kepeken",{Prep,Verb,Noun}), N("kili"),
+    NM("kiwen"), N("ko"), NM("kon"), NMV("kule"), NM("kulupu"), NMV("kute"),
+    NMV("lape"), NMV("laso"), NMV("lawa"), NMV("len"), NMV("lete"), NMV("lili"),
+    N("linja"), NM("lipu"), NMV("loje"), PNMV("lon"), N("luka"), NMPV("lukin"),
+    N("lupa"), N("ma"), NV("mama"), NM("mani"), NM("meli"), NM("mije"), NMV("moku"),
+    NMV("moli"), NM("monsi"), WORD("mu",{Mu}), NM("mun"), NMV("musi"), NM("mute"), 
+    NM("nanpa"), M("nasa"), WORD("nasin",{Noun,Mod}), //Unconventional for it to be used as a verb
+    NM("nena"), N("nimi"), N("noka"), NMV("olin"), NMPV("open"), NMV("pakala"),
+    NMV("pali"), NM("palisa"), N("pan"), VM("pana"), NMV("pilin"), NMV("primeja"),
+    NMPV("pini"), N("pipi"), NM("poka"), NV("poki"), NMV("pona"), NMV("pu"), PNM("sama"),
+    NMV("seli"), NM("selo"), WORD("seme",{Seme}), NM("sewi"), NM("sijelo"), NMV("sike"),
+    NMV("sin"), NM("sinpin"), NMV("sitelen"), NMPV("sona"), N("soweli"), NMV("suli"),
+    NMV("suno"), N("supa"), WORD("suwi",{Mod}), //Unconventionally used as a noun
+    PNMV("tan"), M("tan"), PNMV("tawa"), NMV("telo"), NM("tenpo"), NMV("toki"), 
+    NM("tomo"), NMV("tu"), NMV("unpa"), NM("uta"), NMV("utala"), NMV("walo"),
+    NMV("wan"), N("waso"), NMV("wawa"), NMV("weka"), NMPV("wile")
+};
+
+//A vector of pairs. This will have the synonyms, and tell
+// what to replace that word with (remove synonyms)
+const auto SYNONYMS = {
+    make_pair("kin", "a"), make_pair("ale", "ali"),
+    make_pair("oko", "lukin"), make_pair("namako", "sin")
+};
+
+//Go through all of the synonyms and see if this word is a synonym
+bool isSynonym(string word) {
+    for (pair<string, string> synPair : SYNONYMS) {
+        if (synPair.first == word)
+            return true;
+    }
+    return false;
+}
+
+//Go through the list of vocabulary, return true if this word is part of vocab
+bool isVocabWord(string word) {
+    for (pair<string, vector<TokenType>> vocabPair : VOCAB) {
+        if (vocabPair.first == word)
+            return true;
+    }
+}
 
 
+/* ~{ }~ */
 
 int main() {
     Lexer lexer = Lexer("um[pa. uka mupa!?");
@@ -232,3 +301,4 @@ int main() {
 
     return 0;
 }
+
