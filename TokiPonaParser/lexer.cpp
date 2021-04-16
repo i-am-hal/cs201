@@ -39,7 +39,8 @@ enum TokenType {
     La, Li, Pi,
     E, O, Anu, 
     Seme, En, 
-    Preverb, Mu
+    Preverb, Mu,
+    IllegalUse
 };
 
 //Defines a token, has a token type and a value.
@@ -195,6 +196,22 @@ class Lexer {
             //Outside of bounds, or error, return Eol
             return newToken(Eol, "Eol");
         }
+
+        //Make a list of all of the tokens generated.
+        vector<Token> exhaustTokens() {
+            vector<Token> tokens;
+            Token tok = nextToken();
+
+            //Get each token, add it to the list, until it is all
+            while (tok.tokenType != Eol) {
+                tokens.push_back(tok);
+                tok = nextToken();
+            }
+            //Push an additional Eol at the end
+            tokens.push_back(nextToken());
+
+            return tokens;
+        }
 };
 
 
@@ -208,7 +225,7 @@ ostream &operator<<(ostream &out, TokenType tokenType) {
         "Verb", "Prep", "Mod", "Noun",
         "Pronoun", "Name", "La", "Li", 
         "Pi", "E", "O", "Anu", "Seme", "En", 
-        "Preverb", "Mu"
+        "Preverb", "Mu", "IllegalUse"
     };
 
     return out << outputForm.at(tokenType);
@@ -235,12 +252,13 @@ ostream &operator<<(ostream &out, Token token) {
 #define PNMV(word)       WORD(word,{Prep,Noun,Mod,Verb})    //Defines word that is a prep, noun, modifier, and verb
 #define NMPV(word)       WORD(word,{Preverb,Verb,Mod,Noun}) //Defines word that is a noun, mod, preverb, and verb
 #define PNM(word)        WORD(word,{Prep,Mod,Noun})         //Defines a preposition, mod, noun
+#define CON(word,role)   WORD(word,{role})                  //Defines a word with a constant role
 
 //A vector of pairs, where each pair is a vocabulary word, and the
 // second element says what parts of speech it can act as
 const auto VOCAB = {
     M("a"), N("akesi"), M("ala"), V("alasa"), NM("ali"), NMV("anpa"), NMV("ante"),
-    WORD("anu", {Anu}), NMPV("awen"), WORD("en", {En}), NMV("esun"), NM("ijo"),
+    CON("anu",Anu), NMPV("awen"), CON("en",En), NMV("esun"), NM("ijo"),
     NMV("ike"), NM("ilo"), NM("insa"), NMV("jaki"), NM("jan"), NMV("jelo"),
     WORD("jo",{Verb}), //Unconventual for it to be used as a noun
     N("kala"), NMV("kalama"), WORD("kama",{Preverb,Verb,Noun}), N("kasi"),
@@ -249,17 +267,19 @@ const auto VOCAB = {
     NMV("lape"), NMV("laso"), NMV("lawa"), NMV("len"), NMV("lete"), NMV("lili"),
     N("linja"), NM("lipu"), NMV("loje"), PNMV("lon"), N("luka"), NMPV("lukin"),
     N("lupa"), N("ma"), NV("mama"), NM("mani"), NM("meli"), NM("mije"), NMV("moku"),
-    NMV("moli"), NM("monsi"), WORD("mu",{Mu}), NM("mun"), NMV("musi"), NM("mute"), 
+    NMV("moli"), NM("monsi"), CON("mu",Mu), NM("mun"), NMV("musi"), NM("mute"), 
     NM("nanpa"), M("nasa"), WORD("nasin",{Noun,Mod}), //Unconventional for it to be used as a verb
     NM("nena"), N("nimi"), N("noka"), NMV("olin"), NMPV("open"), NMV("pakala"),
     NMV("pali"), NM("palisa"), N("pan"), VM("pana"), NMV("pilin"), NMV("primeja"),
     NMPV("pini"), N("pipi"), NM("poka"), NV("poki"), NMV("pona"), NMV("pu"), PNM("sama"),
-    NMV("seli"), NM("selo"), WORD("seme",{Seme}), NM("sewi"), NM("sijelo"), NMV("sike"),
+    NMV("seli"), NM("selo"), CON("seme",Seme), NM("sewi"), NM("sijelo"), NMV("sike"),
     NMV("sin"), NM("sinpin"), NMV("sitelen"), NMPV("sona"), N("soweli"), NMV("suli"),
     NMV("suno"), N("supa"), WORD("suwi",{Mod}), //Unconventionally used as a noun
     PNMV("tan"), M("tan"), PNMV("tawa"), NMV("telo"), NM("tenpo"), NMV("toki"), 
     NM("tomo"), NMV("tu"), NMV("unpa"), NM("uta"), NMV("utala"), NMV("walo"),
-    NMV("wan"), N("waso"), NMV("wawa"), NMV("weka"), NMPV("wile")
+    NMV("wan"), N("waso"), NMV("wawa"), NMV("weka"), NMPV("wile"), CON("e",E),
+    CON("li",Li), CON("o",O), CON("pi",Pi), CON("la",La), CON("mi",Pronoun),
+    CON("sina",Pronoun), CON("ni",Pronoun), CON("ona",Pronoun)
 };
 
 //A vector of pairs. This will have the synonyms, and tell
@@ -268,6 +288,148 @@ const auto SYNONYMS = {
     make_pair("kin", "a"), make_pair("ale", "ali"),
     make_pair("oko", "lukin"), make_pair("namako", "sin")
 };
+
+//Check if the given word is part of the vocabulary.
+bool isVocabWord(Token word) {
+    for (const auto &entry : VOCAB) {
+        if (entry.first == word.value) {
+            return true;
+        }
+    }
+    return false;
+}
+
+//Returns the vector of Word types, which describes what
+// kinds of meanings this particular word (which is assumed)
+// to exist.
+vector<TokenType> getEntry(Token word) {
+    for (const auto &entry : VOCAB) {
+        if (entry.first == word.value)
+            return entry.second;
+    }
+    return {Unknown};
+}
+
+//Returns true/false on if this word is ever this particular role
+bool isWordRole(Token word, TokenType wordRole) {
+    if (isVocabWord(word)) {
+        //Find if this word is ever this role 
+        for (const auto &role : getEntry(word)) {
+            if (role == wordRole)
+                return true;
+        }
+        //Doesn't have this role , return false
+        return false;
+
+    //If not vocab word, return false
+    } else 
+        return false;
+}
+
+//Return true/false if word can be a given part of speech
+bool canBeNoun(Token word) { return isWordRole(word, Noun); }
+
+bool canBePronoun(Token word) { return isWordRole(word, Pronoun); }
+
+bool canBeMod(Token word) { return isWordRole(word, Mod); }
+
+bool canBePreverb(Token word) { return isWordRole(word, Preverb); }
+
+bool canBeVerb(Token word) { return isWordRole(word, Verb); }
+
+bool canBeAnyVerb(Token word) { return canBeVerb(word) || canBePreverb(word); }
+
+bool canBePrep(Token word) { return isWordRole(word, Prep); }
+
+//Return true/false if this word is flagged for a particular role
+bool isUnknown(Token word) { return word.tokenType == Unknown; }
+
+bool isVerb(Token word) { return word.tokenType == Verb; }
+
+bool isNoun(Token word) { return word.tokenType == Noun; }
+
+bool isMod(Token word) { return word.tokenType == Mod; }
+
+bool isPronoun(Token word) { return word.tokenType == Pronoun; }
+
+bool isPreverb(Token word) { return word.tokenType == Preverb; }
+
+bool isPrep(Token word) { return word.tokenType == Prep; }
+
+//Return true if this character is a toki pona consosnant
+bool isConsonant(char x) {
+    switch (x) {
+        case 'p':
+        case 't':
+        case 'k': 
+        case 's':
+        case 'm':
+        case 'n':
+        case 'l':
+        case 'w':
+        case 'j':
+            return true;
+            break;
+        default:
+            return false;
+            break;
+    }
+}
+
+//Return true if this character is one of toki pona's vowels
+bool isVowel(char x) {
+    return x == 'a' || x == 'e' || x == 'i' || x == 'o' || x == 'u';
+}
+
+//Returns true if this word is a toki ponized name
+bool isTokiPonaName(string word) {
+    bool isValidName   = true;
+    bool testConsonant = true;
+    int  startPos      = 0;
+    int  endPos        = word.size();
+
+    //If the first character is a vowel, skip it
+    if (word.size() >= 1 && isVowel(word[0]))
+        startPos++;
+    
+    //If last character is an 'n', stop before it
+    if (word.at(endPos-1) == 'n')
+        endPos--;
+    
+    //Go through each character, test consonant & vowel.
+    // All names take the form (V) + (C)(V) + (n)
+    // (An optional vowel at the start, optional vowel at the end,
+    // and everthing between being consonant & vowel pairs)
+    for (int i=startPos; i<endPos; i++) {
+        char currChar = tolower(word.at(i));
+
+        //If we are testing a consonant now, && w/ last result
+        if (testConsonant) {
+            isValidName = isValidName && isConsonant(currChar);
+        
+        //If we are testing a vowel now, && w/ last result
+        } else {
+            isValidName = isValidName && isVowel(currChar);
+        }
+
+        //Switch to testing either now a consonant, or now a vowel
+        testConsonant = not testConsonant;
+    }
+
+    //Return result, the for loop should have eliminated any
+    // words that aren't toki ponized names
+    return isValidName;
+}
+
+//Returns true/false on if this word is a constant.
+// A word is considered a constant if it is only ever
+// one part of speech (ex: only a verb, only a noun)
+bool wordIsConstant(Token word) {
+    bool isWord = isVocabWord(word); //If this word is in vocab
+
+    //Word is a constant if it only has one role
+    return isWord && getEntry(word).size() == 1;
+}
 
 //Go through all of the synonyms and see if this word is a synonym
 bool isSynonym(string word) {
@@ -278,26 +440,305 @@ bool isSynonym(string word) {
     return false;
 }
 
-//Go through the list of vocabulary, return true if this word is part of vocab
-bool isVocabWord(string word) {
-    for (pair<string, vector<TokenType>> vocabPair : VOCAB) {
-        if (vocabPair.first == word)
+//Return true if pronoun is the first person pronoun 'mi'
+bool isMiPronoun(const Token &token) {
+    return token.tokenType == Pronoun && token.value == "mi";
+}
+
+//Return true if the pronoun is the second person pronoun 'sina'
+bool isSinaPronoun(const Token &token) {
+    return token.tokenType == Pronoun && token.value == "sina";
+}
+
+//Return true if the token is the pronoun 'mi' or 'sina'
+bool isMiSina(const Token &token) {
+    return isMiPronoun(token) || isSinaPronoun(token);
+}
+
+//Return true if there is the main verb phrase up down the line 
+bool mainVerbAhead(const vector<Token> &lst, int index) {
+    bool miSinaPronouns = false; //If we encounter mi/sina pronouns
+
+    while (index < lst.size()) {
+        Token word = lst.at(index);
+
+        //If this word is marking start of the main verb phrase, return true
+        if (word.tokenType == Li || word.tokenType == O)
             return true;
+        
+        //If this word is mi or sina, mark this is the case. The next
+        // word 
+        else if (isMiSina(word)) {
+            miSinaPronouns = true;
+            index++;
+            continue;
+        
+        //If we bump into start of direct object, return false
+        } else if (word.tokenType == E)
+            return false;
+
+        index++;
+        //Reset this, so we don't accidentally find main verb
+        miSinaPronouns = false;
+    }
+    //Otherwise, no.
+    return false;
+}
+
+//Return true if the direct object particle is ahead
+bool directObjectAhead(const vector<Token> &lst, int index) {
+    while (index < lst.size()) {
+        Token word = lst.at(index);
+
+        //If we found the 'e' particle, return true
+        if (word.tokenType == E)
+            return true;
+
+        index++;
+    }
+    //Otherwise, didn't find it
+    return false;
+}
+
+//Goes through the list of words and labels constant words
+void labelConstants(vector<Token> &lst) {
+    for (int i=0; i<lst.size(); i++) {
+        Token word = lst.at(i);
+
+        //If this is an unknown word, and constant, give it its defined role
+        if (/*word.tokenType == Unknown &&*/wordIsConstant(word)) {
+            TokenType role = getEntry(word).at(0); //Get the role this word is playing
+            word.tokenType = role;                 //Update the role of this word
+            lst[i] = word;                         //Update the word in the list of words
+        }
     }
 }
 
+//Goes through and attempts to find words that appear to be
+// a modfier. Should allow us to label 
+bool labelModifiers(vector<Token> &lst) {
+    bool modifiersLabeled = false; //If we did label any modifiers
+
+    for (int i=1; i < lst.size(); i++) {
+        Token lastWord = lst.at(i-1);
+        Token currWord = lst.at(i);
+
+        //If this word is unknown, and the last word is either unknown or a verb
+        if (isUnknown(currWord) && isUnknown(lastWord) || isVerb(lastWord) && canBeMod(currWord)) {
+            currWord.tokenType = Mod; //Set role of curr word as a modifier
+            lst[i] = currWord;        //Update word in list of words
+            modifiersLabeled = true;
+
+        //If the last word is either a noun or unknown, and this is an unknown, label mod
+        } else if (isUnknown(lastWord) || isNoun(lastWord) && !isMod(currWord) && canBeMod(currWord)) {
+            currWord.tokenType = Mod;
+            lst[i] = currWord;
+            modifiersLabeled = true;
+
+        //If last word is a modifier, and this word is word can be a modifier, probably a modifier
+        } else if (isMod(lastWord) && !isMod(currWord) && canBeMod(currWord)) {
+            lst[i].tokenType = Mod;
+            modifiersLabeled = true;
+        }
+    }
+    return modifiersLabeled;
+}
+
+//Goes through and labels and Toki Pona names
+bool labelNames(vector<Token> &lst) {
+    bool hasLabeledNames = false;
+
+    for (int i=0; i<lst.size(); i++) {
+        Token word = lst.at(i);
+
+        //If this word is a modifier (all names are 'imported' as adjectives)
+        // and this word IS a valid toki pona name, and not an existing
+        // toki pona word, then it is a name
+        if (isMod(word) && !isVocabWord(word) && isTokiPonaName(word.value)) {
+            word.tokenType = Name;
+            lst[i] = word;
+            hasLabeledNames = true;
+        }
+    }
+    return hasLabeledNames;
+}
+
+//Labels all pronouns which are being used as pronouns
+bool labelPronounMods(vector<Token> &lst) {
+    bool labeledPronouns = false; //If we have relabeled the pronouns
+
+    for (int i=1; i<lst.size(); i++) {
+        Token lastWord = lst.at(i-1);
+        Token currWord = lst.at(i);
+
+        //If the last word is a noun or modifier, and this is a pronoun, this pronoun is a modifier
+        if (isPronoun(currWord) && (isNoun(lastWord) || isMod(lastWord) || isUnknown(lastWord))) {
+            currWord.tokenType = Mod;
+            lst[i] = currWord;
+            labeledPronouns = true;
+        }
+    }
+    return labeledPronouns;
+}
+
+//Label the preverb within the sentence
+bool labelPreverb(vector<Token> &lst) {
+    int verbPhraseDist = 0; //If we've found the verb phrase. Marks distance from li/o
+
+    for (int i=0; i<lst.size(); i++) {
+        Token word = lst.at(i);
+
+        //If this is a verb marker, or if this is a noun, next could easily be a verb
+        if (word.tokenType == O || word.tokenType == Li || isMiSina(word)) 
+            verbPhraseDist = 1;
+        
+        //If just before was a verb marker, and this can be a preverb, mark it
+        else if (verbPhraseDist == 1 && canBePreverb(word)) {
+            word.tokenType = Preverb;
+            lst[i] = word;
+            return true;
+
+        //If we haven't bumped into preverb, continue going
+        } else if (verbPhraseDist >= 1)
+            verbPhraseDist++;
+    }
+    return false;
+}
+
+//Finds the main verb and labels it.
+bool labelVerb(vector<Token> &lst) {
+    int preverbDistance = 0; //Distance from found preverb
+    int subjectDistance = 0;
+
+    //Try finding the verb by looking for a preverb
+    for (int i=0; i<lst.size(); i++) {
+        Token word = lst.at(i);
+
+        //If we found the preverb, next verb is main verb
+        if (isPreverb(word))
+            preverbDistance = 1; 
+        
+        //If there is a potential verb right after preverb, it is a verb
+        else if (preverbDistance == 1 && canBeVerb(word)) {
+            word.tokenType = Verb;
+            lst[i] = word;
+            return true;
+
+        //Increase distance from preverb, verb HAS to be right after preverb
+        } else if (preverbDistance >= 1)
+            preverbDistance++;
+    }
+
+    //Try to find main verb, and label it
+    for (int i=0; i<lst.size(); i++) {
+        Token word = lst.at(i);
+
+        if (isPronoun(word) && i == 0 && subjectDistance == 0)
+            subjectDistance = 1;
+        
+        else if (subjectDistance >= 1 && canBeVerb(word) && !isPreverb(word)) {
+            word.tokenType = Verb;
+            lst[i] = word;
+            return true;
+        }
+    }
+
+    //Go through, find a preverb that isn't modifying a verb, it is a verb
+    for (int i=1; i<lst.size(); i++) {
+        Token lastWord = lst.at(i-1);
+        Token currWord = lst.at(i);
+
+        if (isPreverb(lastWord) && canBeVerb(lastWord) && (!isVerb(currWord) || !isMod(currWord))) {
+            lastWord.tokenType = Verb;
+            lst[i-1] = lastWord;
+            return true;
+        }
+    }
+
+    //Find places were there is li/o/mi/sina and then an unlabeled verb, and label the verb
+    for (int i=1; i<lst.size(); i++) {
+        Token lastWord = lst.at(i-1);
+        Token currWord = lst.at(i);
+        TokenType lastType = lastWord.tokenType;
+
+        if (lastType == O || lastType == Li || isMiSina(lastWord) && canBeVerb(currWord) && !isVerb(currWord)) {
+            currWord.tokenType = Verb;
+            lst[i] = currWord;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+//Label words that are nouns but are left unlabeled
+// because they are next to constructs such as pi, en
+bool labelComplexNouns(vector<Token> &lst) {
+    bool labeledNouns = false;
+    for (int i=1; i<lst.size(); i++) {
+        Token currWord = lst.at(i-1);
+        Token nextWord = lst.at(i);
+
+        //If the next word can be a noun, and this potential noun is right after 'en' or 'pi', then it is a noun
+        if (currWord.tokenType == Pi || currWord.tokenType == En && canBeNoun(nextWord) && !isNoun(nextWord)) {
+            nextWord.tokenType = Noun;
+            lst[i] = nextWord;
+            labeledNouns = true;
+
+        //If this word is a potential noun, but is a preposition after 'e' then it is a noun
+        } else if (currWord.tokenType == E && canBeNoun(nextWord) && !isNoun(nextWord) && isPrep(nextWord)) {
+            lst[i].tokenType = Noun;
+            labeledNouns = true;
+
+        //If this current word is a preposition verb, and next is a potential noun, then next word is a noun
+        } else if (isVerb(currWord) && canBePrep(currWord) && canBeNoun(nextWord) && !isNoun(nextWord)) {
+            lst[i].tokenType = Noun;
+            labeledNouns = true;
+        }
+    }
+    return labeledNouns;
+}
+
+//Goes through and labels punctuation marks.
+void labelPunctuation (vector<Token> &lst) {
+    for (int i=0; i<lst.size(); i++) {
+        Token token = lst.at(i);
+
+        if (token.value == ".") {
+            lst[i].tokenType = Period;
+
+        } else if (token.value == "!") {
+            lst[i].tokenType = Exclaim;
+
+        } else if (token.value == "?") {
+            lst[i].tokenType = Question;
+        }
+    }
+}
+
+//Go through and try to label all of the words in the sentence
+void labelWords(vector<Token> &lst) {
+    labelModifiers(lst);
+    labelNames(lst);
+    labelPronounMods(lst);
+    labelPreverb(lst);
+    labelVerb(lst);
+    labelConstants(lst);
+    labelComplexNouns(lst);
+    labelPunctuation(lst);
+}
 
 /* ~{ }~ */
 
 int main() {
-    Lexer lexer = Lexer("um[pa. uka mupa!?");
+    Lexer lexer = Lexer("ona li kepeken ilo.");
 
-    Token tok = lexer.nextToken();
+    vector<Token> tokens = lexer.exhaustTokens();
 
-    while (tok.tokenType != Eol) {
-        cout << tok << std::endl;
-        tok = lexer.nextToken();
-    }
+    labelWords(tokens);
+
+    for (Token word : tokens)
+        cout << word << std::endl;
 
     return 0;
 }
