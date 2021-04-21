@@ -572,9 +572,14 @@ bool labelPronounMods(vector<Token> &lst) {
         Token currWord = lst.at(i);
 
         //If the last word is a noun or modifier, and this is a pronoun, this pronoun is a modifier
-        if (isPronoun(currWord) && (isNoun(lastWord) || isMod(lastWord) || isUnknown(lastWord))) {
+        if (isPronoun(currWord) && isNoun(lastWord)) {
             currWord.tokenType = Mod;
             lst[i] = currWord;
+            labeledPronouns = true;
+
+        //If last word is a modifier and this is a pronoun, mark as a mod
+        } else if (isPronoun(currWord) && isMod(lastWord)) {
+            lst[i].tokenType = Mod;
             labeledPronouns = true;
         }
     }
@@ -720,7 +725,7 @@ void labelPunctuation (vector<Token> &lst) {
 void labelWords(vector<Token> &lst) {
     labelModifiers(lst);
     labelNames(lst);
-    labelPronounMods(lst);
+    //labelPronounMods(lst);
     labelPreverb(lst);
     labelVerb(lst);
     labelConstants(lst);
@@ -731,7 +736,7 @@ void labelWords(vector<Token> &lst) {
 /* ~{ }~ */
 
 int main() {
-    Lexer lexer = Lexer("ona li kepeken ilo.");
+    Lexer lexer = Lexer("sina pona tawa mi");
 
     vector<Token> tokens = lexer.exhaustTokens();
 
