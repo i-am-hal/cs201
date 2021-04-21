@@ -18,6 +18,10 @@ using std::vector;
 using std::cout;
 using std::pair;
 
+//Start of definition of lexer.hpp
+#ifndef LEXER_HPP
+#define LEXER_HPP
+
 //Token types, end of line, verb, preposition, modifer, 
 // (pro)noun, and name. Contains key seperator words in
 // the language. 
@@ -735,16 +739,6 @@ void labelWords(vector<Token> &lst) {
 
 /* ~{ }~ */
 
-int main() {
-    Lexer lexer = Lexer("sina pona tawa mi");
 
-    vector<Token> tokens = lexer.exhaustTokens();
-
-    labelWords(tokens);
-
-    for (Token word : tokens)
-        cout << word << std::endl;
-
-    return 0;
-}
-
+//End declaration of lexer.hpp
+#endif
