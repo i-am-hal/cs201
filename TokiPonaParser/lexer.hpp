@@ -163,6 +163,15 @@ class Lexer {
             }
         }
 
+        //Deletes all of the info this object uses
+        ~Lexer() {
+            delete &text;
+            delete &pos;
+            delete &currChar;
+            delete &error;
+            delete &errorStr;
+        }
+
         //Lexer will attempt to get a new token to return.
         Token nextToken() {
             //Continue trying to get a token while we can

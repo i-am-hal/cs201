@@ -17,11 +17,24 @@ enum NodeType {
     NTNoun=0, NTMod,
     NTVerb, NTPreverb,
     NTNounPhrase, NTVerbPhrase,
-    NTPrepPhrase
+    NTPrepPhrase, NTNone 
 };
 
+//The parent node of all nodes
 class Node {
     public:
         NodeType nodeType;
 }; 
+
+
+//This class will be given a string and will 
+// parse it into 
+class Parser {
+    private:
+        string text;
+    
+    public:
+        bool error;
+        string errorStr;
+};
 
