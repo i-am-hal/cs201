@@ -1,19 +1,21 @@
 
-utterance :=   <sentence> la <sentence> <punctuation>
-	     | <sentence> <punctuation>
+paragraph := <utterance>+
 
-sentence  :=   <nounPhrase>
-	     | <nounPhrase> <verbPhrase> <dirNounPhrase>? <indirNounPhrase>?
-	     | (mi | sina)  <mainVerb>   <dirNounPhrase>? <indirNounPhrase>?
+utterance := <sentence> la <utterance>
+	       | <sentence> <punctuation>
+
+sentence  := <nounPhrase>
+	       | <nounPhrase> <verbPhrase> <dirNounPhrase>? <indirNounPhrase>?
+	       | (mi | sina)  <mainVerb>   <dirNounPhrase>? <indirNounPhrase>?
 
 indirNounPhrase := <prepPhrase> <nounPhrase>
 
 dirNounPhrase := e <nounPhrase>
 
-nounPhrase :=   <baseNP> pi <nounPhrase>
-	      | <baseNP> en <nounPhrase>
-	      | <baseNP> anu <nounPhrase>
-	      | <baseNP>
+nounPhrase := <baseNP> pi <nounPhrase>
+	        | <baseNP> en <nounPhrase>
+	        | <baseNP> anu <nounPhrase>
+	        | <baseNP>
 
 baseNP := <noun> <adjectives>
 

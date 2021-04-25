@@ -148,6 +148,11 @@ class Lexer {
         bool   error;
         string errorStr;
 
+        Lexer() {
+            error = true;
+            errorStr = "mi sona ala e toki sina.";
+        }
+
         //Creates the lexer, only needs the text which should be fed through
         Lexer(string inputText) {
             text = inputText; //Store away the text, to be used to lexer.
@@ -745,9 +750,6 @@ void labelWords(vector<Token> &lst) {
     labelComplexNouns(lst);
     labelPunctuation(lst);
 }
-
-/* ~{ }~ */
-
 
 //End declaration of lexer.hpp
 #endif
