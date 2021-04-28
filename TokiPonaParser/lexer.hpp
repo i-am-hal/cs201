@@ -44,7 +44,8 @@ enum TokenType {
     E, O, Anu, 
     Seme, En, 
     Preverb, Mu,
-    IllegalUse
+    IllegalUse,
+    Nothing
 };
 
 //Defines a token, has a token type and a value.
@@ -56,6 +57,25 @@ struct Token {
 //Creates a new instance of a token
 Token newToken(TokenType type, string value) {
     return Token {type, value};
+}
+
+//Returns a stirng which is for this token type
+string tokenTypeString(TokenType tokenType) {
+    vector<string> outputForm = {
+        "Eol", "Unknown", "Period",
+        "Comma", "Question", "Exclaim", 
+        "Verb", "Prep", "Mod", "Noun",
+        "Pronoun", "Name", "La", "Li", 
+        "Pi", "E", "O", "Anu", "Seme", "En", 
+        "Preverb", "Mu", "IllegalUse", "Nothing"
+    };
+
+    return outputForm.at(tokenType);
+}
+
+//Returns a string which is for this token
+string tokenString(Token token) {
+    return "Token {" + tokenTypeString(token.tokenType) + ", " + token.value + "}";
 }
 
 //Takes a string, makes it all lowercase
@@ -168,15 +188,6 @@ class Lexer {
             }
         }
 
-        //Deletes all of the info this object uses
-        ~Lexer() {
-            delete &text;
-            delete &pos;
-            delete &currChar;
-            delete &error;
-            delete &errorStr;
-        }
-
         //Lexer will attempt to get a new token to return.
         Token nextToken() {
             //Continue trying to get a token while we can
@@ -235,19 +246,6 @@ class Lexer {
 
 /* ~{ OBJECT / TYPE PRINTING SUPPORT }~ */
 
-//Print out tokentype in a more pleasant way
-ostream &operator<<(ostream &out, TokenType tokenType) {
-    vector<string> outputForm = {
-        "Eol", "Unknown", "Period",
-        "Comma", "Question", "Exclaim", 
-        "Verb", "Prep", "Mod", "Noun",
-        "Pronoun", "Name", "La", "Li", 
-        "Pi", "E", "O", "Anu", "Seme", "En", 
-        "Preverb", "Mu", "IllegalUse"
-    };
-
-    return out << outputForm.at(tokenType);
-}
 
 //Overwhite printing operator so that we can print out token
 ostream &operator<<(ostream &out, Token token) {

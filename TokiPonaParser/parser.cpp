@@ -19,6 +19,30 @@ enum NodeType {
     NTOf, NTParagraph, NTNone
 };
 
+//Allouts the printing out the node types
+string nodeTypeString(NodeType type) {
+    vector<string> outputs = {
+        "NTNounPhrase", "NTVerbPhrase", "NTPrepPhrase", "NTAnd",
+        "NTOr", "NTLa", "NTOf", "NTParagraph", "NTNone"
+    };
+
+    return outputs.at(type);
+}
+
+//Returns string version of all the modifiers
+string nodeMods(vector<Token> mods) {
+    string out = "";
+
+    for (Token token: mods)
+        out += tokenString(token);
+    
+    if (mods.size() > 0)
+        return " " + out;
+
+    else
+        return "";
+}
+
 //The parent node of all nodes
 class Node {
     public:
@@ -30,8 +54,7 @@ class Node {
         //Otherwise, use given type to create the node
         Node(NodeType type): nodeType{type} {}
 
-        //Deconstructor for all nodes
-        ~Node() { delete &nodeType; }
+        string toString() { return "Node {" + nodeTypeString(nodeType) + "}";}
 }; 
 
 //Definition of a noun phrase
@@ -47,10 +70,8 @@ class NounPhrase: public Node {
         modifiers = mods;
     }
 
-    ~NounPhrase() {
-        delete &nodeType;
-        delete &noun;
-        delete &modifiers;
+    string toString() {
+        return "NP {" + tokenString(noun) + nodeMods(modifiers) + "}";
     }
 };
 
@@ -66,6 +87,7 @@ class VerbPhrase: public Node {
         nodeType = NTVerbPhrase;
         verb = coreVerb;
         modifiers = mods;
+        preverb = newToken(Nothing, "None");
     }
 
     //Creates the verb phrase.
@@ -76,11 +98,12 @@ class VerbPhrase: public Node {
         modifiers = mods;
     }
 
-    ~VerbPhrase() {
-        delete &nodeType;
-        delete &preverb;
-        delete &verb;
-        delete &modifiers;
+    string toString() {
+        if (preverb.tokenType == Nothing)
+            return "VP {" + tokenString(verb) + nodeMods(modifiers) + "}";
+        
+        else
+            return "VP {" + tokenString(preverb) + " " + tokenString(verb) + nodeMods(modifiers) + "}";
     }
 };
 
@@ -96,10 +119,8 @@ class PrepPhrase: public Node {
         noun = nounNode;
     }
     
-    ~PrepPhrase() {
-        delete &nodeType;
-        delete &modifiers;
-        delete &noun;
+    string toString() {
+        return "PrepP {" + tokenString(preposition) + nodeMods(modifiers) + " " + noun.toString() + "}";
     }
 };
 
@@ -116,10 +137,8 @@ class NounJoin: public Node {
         right = rightNode;
     }
 
-    ~NounJoin() {
-        delete &nodeType;
-        delete &left;
-        delete &right;
+    string toString() {
+        return "Join {" + left.toString() + " " + nodeTypeString(nodeType) + " " + right.toString() + "}";
     }
 };
 
@@ -145,12 +164,8 @@ class Sentence: public Node {
             dirObject = dirObj;
         }
 
-        ~Sentence() {
-            delete &nodeType;
-            delete &subject;
-            delete &mainVerb;
-            delete &dirObject;
-            delete &indirObject;
+        string toString() {
+            return "S{ Subj:" + subject.toString() + " V:" + mainVerb.toString() + "DO:" + dirObject.toString() + " IDO:" + indirObject.toString() + "}";
         }
 };
 
@@ -164,11 +179,28 @@ class Paragraph: public Node {
         sentences = statements;
     }
 
-    ~Paragraph() {
-        delete &nodeType;
-        delete &sentences;
+    string toString() {
+        if (sentences.size() == 0)
+            return "P {}";
+
+        else if (sentences.size() == 1)
+            return "P {" + sentences.at(0).toString() + "}";
+        
+        else {
+            string line = "";
+
+            //Convert all except last item into strings
+            for (int i=0; i<sentences.size()-1; i++) {
+                Node item = sentences.at(i);
+                line += item.toString() + " ";
+            }
+
+            //Return the completed line
+            return line + sentences.at(sentences.size()-1).toString();
+        }
     }
 };
+
 
 //This class will be given a string and will parse it 
 // into direct object indirect object and verb phrase
@@ -215,7 +247,7 @@ class Parser {
         }
 
         //Parses a base noun 
-        Node baseNoun() {
+        NounPhrase* baseNoun() {
             Token noun = currToken;
             eatType(Noun, "mi sona ala e toki sina.");
 
@@ -232,12 +264,14 @@ class Parser {
                 remove(currType());
             }
 
-            return NounPhrase(noun, mods);
+            return &NounPhrase(noun, mods);
         }
 
         //Parses some sort of noun phrase
         Node nounPhrase() {
-            Node noun = baseNoun();
+            cout << "Before parsing base noun!" << endl;
+            NounPhrase noun = *baseNoun();
+            cout << "Base noun is: " << noun.toString() << endl;
 
             //If this is or, join with or operator
             if (currType() == Anu)
@@ -250,6 +284,9 @@ class Parser {
             //If this is of, join w/ operator
             else if (currType() == Pi)
                 return NounJoin(NTOf, noun, nounPhrase());
+            
+            else //Otherwise just return the noun
+                return noun;
         }
 
         //Parses a verb phrase, a preverb, verb, modifiers
@@ -283,7 +320,9 @@ class Parser {
                 }
 
                 return VerbPhrase(verb, mods);
-            }
+
+            } else
+                return Node();
         }
 
         //Pares a direct noun phrase
@@ -322,6 +361,7 @@ class Parser {
 
         //Parses some sort of noun phrase.
         Node sentence() {
+            cout << "Before parsing noun phrase!" << endl;
             Node subject = nounPhrase();
             Node mainVerb = verbPhrase();
             //Attempt to get some sort of direct noun phrase.
@@ -340,6 +380,8 @@ class Parser {
             //If this is la, conjoin another sentenec w/ that
             if (currType() == La)
                 phrase = NounJoin(NTLa, phrase, utterance());
+            
+            return phrase;
         }
 
     public:
@@ -374,7 +416,7 @@ class Parser {
         }
 
         //Deconstructor for the parser.
-        ~Parser() {
+        /*~Parser() {
             delete &text;
             delete &lexer;
             delete &error;
@@ -382,7 +424,7 @@ class Parser {
             delete &currToken;
             delete &tokens;
             delete &tokenIndex;
-        }
+        }*/
 
         //Parses an expression
         Node parse() {
@@ -411,3 +453,10 @@ class Parser {
         }
 };
 
+
+int main() {
+    Parser parser = Parser("mi pana");
+    cout << parser.parse().toString() << endl;
+
+    return 0;
+}
